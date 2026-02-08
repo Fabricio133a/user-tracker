@@ -3,12 +3,40 @@ const cors = require("cors");
 const app = express();
 const PORT = 3000;
 const { sql, connectDB } = require('./connection')
+const setupSwagger = require("./swagger");
 
 app.use(cors());
 app.use(express.json());
 
+setupSwagger(app);
+
 //this is from another script
 connectDB();
+
+/**
+ * @swagger
+ * /student/grade:
+ *   post:
+ *     summary: Save a student grade
+ *     description: Saves letterGrade and percent into the database
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               letterGrade:
+ *                 type: string
+ *                 example: A
+ *               percent:
+ *                 type: integer
+ *                 example: 95
+ *     responses:
+ *       200:
+ *         description: Grade saved successfully
+ */
+
 
 app.post("/student/grade", async(req, res) => {
     try{
@@ -32,7 +60,7 @@ app.post("/student/grade", async(req, res) => {
 
        await sql.query`
         INSERT INTO StudentGrades (LetterGrade, PercentValue)
-        VALUES (${letterGrade}. ${percentNumber})
+        VALUES (${letterGrade}, ${percentNumber})
        `;
 
        return res.json({
