@@ -41,7 +41,7 @@ connectDB();
 
 app.post("/student/grade", async(req, res) => {
     try{
-        const { letterGrade, percent } = req.body;
+        const {letterGrade, percent } = req.body;
 
         if(!letterGrade || percent === undefined) {
             return res.json({
@@ -78,13 +78,39 @@ app.post("/student/grade", async(req, res) => {
     }
 });
 
-app.get("/student/grade", async(req, res) => {
+app.get("/student/grade/", async(req, res) => {
     try {
-    const result = await sql.query(`
+    const result = await sql.query`
     SELECT Id, LetterGrade, PercentValue
     FROM StudentGrades
     ORDER BY Id DESC
-    `);
+    `;
+
+        //github is saving this
+
+    return res.json({
+        success: true,
+        grades: result.recordset
+    });
+    } catch(err) {
+        console.error("GET / student/grade error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch Grades"
+        });
+    }
+});
+
+app.get("/student/grade/:StudentID", async(req, res) => {
+    try {
+        const { StudentID } = req.params;
+
+    const result = await sql.query`
+    SELECT Id, StudentID, LetterGrade, PercentValue
+    FROM StudentGrades
+    WHERE StudentID = ${StudentID}
+    ORDER BY Id DESC
+    `;
 
         //github is saving this
 
@@ -103,9 +129,9 @@ app.get("/student/grade", async(req, res) => {
 
 app.post("/students", async(req, res) => {
     try{
-        const {username, password} = req.body;
+        const {usernames, password} = req.body;
 
-        if(!username || !password) {
+        if(!usernames || !password) {
             return res.status(400).json({
                 success: false,
                 message: "Username and password required"
@@ -116,13 +142,13 @@ app.post("/students", async(req, res) => {
 
         await sql.query`
             INSERT INTO StudentInfo (Username, UserPassword)
-            VALUES (${username}, ${hashedPassword})
+            VALUES (${usernames}, ${hashedPassword})
         `
 
         res.json({
             success: true,
             message: "Student created",
-            username,
+            usernames,
             hashedPassword
         });
 
