@@ -4,6 +4,7 @@ const app = express();
 const PORT = 3000;
 const { sql, connectDB } = require('./connection')
 const setupSwagger = require("./swagger");
+const bcrypt = require("bcrypt");
 
 app.use(cors());
 app.use(express.json());
@@ -96,6 +97,40 @@ app.get("/student/grade", async(req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to fetch Grades"
+        });
+    }
+});
+
+app.post("/students", async(req, res) => {
+    try{
+        const {username, password} = req.body;
+
+        if(!username || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Username and password required"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await sql.query`
+            INSERT INTO StudentInfo (Username, UserPassword)
+            VALUES (${username}, ${hashedPassword})
+        `
+
+        res.json({
+            success: true,
+            message: "Student created",
+            username,
+            hashedPassword
+        });
+
+    } catch(err) {
+        console.log("POST /students error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
         });
     }
 });
